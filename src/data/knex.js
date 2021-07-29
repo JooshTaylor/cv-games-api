@@ -1,7 +1,7 @@
 const knex = require('knex');
 require('dotenv').config();
-const { knexSnakeCaseMappers } = require('objection');
 const { parse } = require('pg-connection-string')
+const { knexSnakeCaseMappers } = require('objection');
 
 const devConfig = {
   host: process.env.PG_HOST,
@@ -12,7 +12,7 @@ const devConfig = {
 };
 
 const prodConfig = {
-  connectionString: parse(process.env.DATABASE_URL),
+  connectionString: process.env.DATABASE_URL,
   ssl: true
 }
 
