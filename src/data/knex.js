@@ -12,7 +12,12 @@ const devConfig = {
 
 const prodConfig = {
   connectionString: process.env.DATABASE_URL,
-  ssl: true
+  ssl: { rejectUnauthorized: false }
+  // host: 'postgresql-solid-09719',
+  // user: 'postgres',
+  // database: 'cv_games',
+  // port: 5432,
+  // password: '-V=7vzYn!vx{F~Pz'
 }
 
 const db = knex({
