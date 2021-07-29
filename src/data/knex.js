@@ -1,6 +1,5 @@
 const knex = require('knex');
 require('dotenv').config();
-const { parse } = require('pg-connection-string')
 const { knexSnakeCaseMappers } = require('objection');
 
 const devConfig = {

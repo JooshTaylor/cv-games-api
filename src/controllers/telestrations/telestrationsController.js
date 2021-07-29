@@ -3,7 +3,7 @@ const shortid = require('shortid');
 
 const telestrationsController = express.Router();
 
-const TelestrationsService = require('../../services/telestrationsService');
+const TelestrationsService = require('../../services/TelestrationsService');
 
 telestrationsController.get('/lobby/:id', async (req, res) => {
   try {
