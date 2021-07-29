@@ -7,7 +7,7 @@ function setupSocket(server) {
     cors: {
       origin: [
         'http://localhost:3000',
-        'https://cocky-volhard-848cb0.netlify.app'
+        'https://cv-games.netlify.app'
       ]
     }
   });
