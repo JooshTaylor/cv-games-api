@@ -185,6 +185,16 @@ const TelestrationsService = {
     if (!drawingsForRound.find(row => !row.drawing)) {
       await TelestrationsService.startNextRound(lobby_id);
     }
+  },
+
+  async setGuess(lobby_id, player_id, round_number, guess) {
+    await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).andWhere({ round_number }).update({ word: guess });
+
+    const guessesForRound = await db('lobby_round').where({ lobby_id }).andWhere({ round_number }).select('word');
+
+    if (!guessesForRound.find(row => !row.word)) {
+      await TelestrationsService.startNextRound(lobby_id);
+    }
   }
 };
 
