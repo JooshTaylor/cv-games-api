@@ -69,11 +69,22 @@ const TelestrationsService = {
       current_round: 1
     };
 
-    // const shuffledPlayers = ArrayHelper.shuffle(lobby.players);
-
     await db('lobby').where({ id: lobby_id }).update(updateData);
 
-    for (const player of lobby.players) {
+    const shuffledPlayers = ArrayHelper.shuffle(lobby.players);
+
+    for (const player of shuffledPlayers) {
+      const index = shuffledPlayers.findIndex(p => p.id === player.id);
+
+      let previousPlayer;
+
+      if (index > 0)
+        previousPlayer = shuffledPlayers[index - 1];
+      else
+        previousPlayer = shuffledPlayers[shuffledPlayers.length - 1];
+
+      await db('lobby_player').where({ lobby_id }).andWhere({ player_id: player.id }).update({ previous_player_id: previousPlayer.id });
+
       await TelestrationsService.addRound(lobby_id, player.id, 1, TelestrationsRoundType.SelectWord);
     }
 
@@ -110,6 +121,7 @@ const TelestrationsService = {
 
   async setPlayerWord(lobby_id, player_id, word) {
     await db('lobby_player').where({ lobby_id }).andWhere({ player_id }).update({ word });
+    await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).andWhere({ round_type: TelestrationsRoundType.SelectWord }).update({ word });
 
     const lobbyPlayerWords = await db('lobby_player').where({ lobby_id }).select('word');
 
@@ -132,18 +144,19 @@ const TelestrationsService = {
   
       await db('lobby').where({ id: lobby_id }).update({ current_round: nextRoundNumber });
   
-      lobby.currentRound++;
-
-      const previousRound = await TelestrationsService.get
-  
       const nextRoundType = nextRoundNumber % 2 === 0
         ? TelestrationsRoundType.DrawWord
         : TelestrationsRoundType.GuessWord;
-  
-      for (const player of lobby.players) {
-        await TelestrationsService.addRound(lobby_id, player.id, nextRoundNumber, nextRoundType);
+
+      const lobbyPlayers = await db('lobby_player').where({ lobby_id });
+
+      for (const player of lobbyPlayers) {
+        const previousRound = await TelestrationsService.getLobbyRoundForPlayer(lobby_id, player.previousPlayerId, lobby.currentRound);
+
+        await TelestrationsService.addRound(lobby_id, player.playerId, nextRoundNumber, nextRoundType, previousRound.word);
       }
   
+      lobby.currentRound++;
       // When the round is changed, emit an update event to all players
       SocketHelper.emitToLobby(lobby_id, socketEvents.Telestrations.UPDATE_LOBBY, lobby);
     } catch (err) {
