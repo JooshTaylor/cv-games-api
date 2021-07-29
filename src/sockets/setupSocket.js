@@ -1,5 +1,5 @@
 const socket = require('socket.io');
-const TelestrationsService = require('../services/telestrationsService');
+const TelestrationsService = require('../services/TelestrationsService');
 const socketEvents = require('./events');
 
 function setupSocket(server) {
