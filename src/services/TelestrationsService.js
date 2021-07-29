@@ -195,6 +195,30 @@ const TelestrationsService = {
     if (!guessesForRound.find(row => !row.word)) {
       await TelestrationsService.startNextRound(lobby_id);
     }
+  },
+
+  // Results
+  async getGameResultsForPlayer(lobby_id, player_id) {
+    const results = {
+      lobbyId: lobby_id
+    };
+
+    const lobby = await TelestrationsService.getLobby(lobby_id);
+    const lobbyPlayer = await TelestrationsService.getLobbyPlayer(lobby_id, player_id);
+
+    results.player = lobby.players.find(p => p.id === player_id);
+    results.word = lobbyPlayer.word;
+
+    console.log(lobby_id, lobbyPlayer, lobby);
+    const finalRoundForPlayersWord = await TelestrationsService.getLobbyRoundForPlayer(lobby_id, lobbyPlayer.previousPlayerId, lobby.totalRounds);
+
+    results.finalRound = finalRoundForPlayersWord;
+
+    // // This is the player who had to draw the original word
+    // const { nextPlayerId } = lobbyPlayer;
+
+    // const rounds = await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).orderBy('round_number', 'asc');
+    return results;
   }
 };
 
