@@ -169,7 +169,7 @@ const TelestrationsService = {
 
   async endGame(lobby_id) {
     const lobby = await db('lobby').where({ id: lobby_id }).update({ status: LobbyStatus.Complete }).returning('*');
-    SocketHelper.emitToLobby(lobby_id, socketEvents.Telestrations.UPDATE_LOBBY, lobby);
+    SocketHelper.emitToLobby(lobby_id, socketEvents.Telestrations.UPDATE_LOBBY, lobby[0]);
   },
 
   async getLobbyRoundForPlayer(lobby_id, player_id, round_number) {
