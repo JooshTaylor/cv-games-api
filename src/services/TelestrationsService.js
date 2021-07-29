@@ -153,7 +153,10 @@ const TelestrationsService = {
       for (const player of lobbyPlayers) {
         const previousRound = await TelestrationsService.getLobbyRoundForPlayer(lobby_id, player.previousPlayerId, lobby.currentRound);
 
-        await TelestrationsService.addRound(lobby_id, player.playerId, nextRoundNumber, nextRoundType, previousRound.word);
+        const word = nextRoundType === TelestrationsRoundType.DrawWord ? previousRound.word : null;
+        const drawing = nextRoundType === TelestrationsRoundType.GuessWord ? previousRound.drawing : null;
+
+        await TelestrationsService.addRound(lobby_id, player.playerId, nextRoundNumber, nextRoundType, word, drawing);
       }
   
       lobby.currentRound++;
