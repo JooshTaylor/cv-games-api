@@ -15,7 +15,7 @@ require('./data/knex');
   const server = app.listen(PORT, () => console.log('Server running on port 4000'));
   
   app.use(cors());
-  app.use(json());
+  app.use(json({ limit: '50mb' }));
 
   app.get('/', (req, res) => res.send('cv games api running'));
 

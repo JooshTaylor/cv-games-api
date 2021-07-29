@@ -72,4 +72,13 @@ telestrationsController.get(`/lobby/:id/round/:round_number`, async (req, res) =
   }
 });
 
+telestrationsController.post(`/lobby/:lobby_id/players/:player_id/round/:round_number/drawing`, async (req, res) => {
+  try {
+    await TelestrationsService.setDrawing(req.params.lobby_id, req.params.player_id, req.params.round_number, req.body.drawing);
+    res.json('Success');
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 module.exports = telestrationsController;

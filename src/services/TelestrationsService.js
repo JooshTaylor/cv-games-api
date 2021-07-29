@@ -91,7 +91,7 @@ const TelestrationsService = {
     global.io.in(lobby_id).emit(socketEvents.Telestrations.START_GAME);
   },
 
-  async addRound(lobby_id, player_id, round_number, round_type, word = null, image_url = null) {
+  async addRound(lobby_id, player_id, round_number, round_type, word = null, drawing = null) {
     const row = {
       id: shortid.generate(),
       lobby_id,
@@ -103,8 +103,8 @@ const TelestrationsService = {
     if (word)
       row.word = word;
 
-    if (image_url)
-      row.image_url = image_url;
+    if (drawing)
+      row.drawing = drawing;
 
     await db('lobby_round').insert(row);
   },
@@ -169,19 +169,19 @@ const TelestrationsService = {
     SocketHelper.emitToLobby(lobby_id, socketEvents.Telestrations.UPDATE_LOBBY, lobby);
   },
 
-  async getSiblingPlayers(lobby_id, player_id) {
-    const lobbyPlayer = await TelestrationsHelper.getLobbyPlayer(lobby_id, player_id);
-    const lobby = await TelestrationsHelper.getLobby(lobby_id);
-
-    const nextPlayer = lobby.players.find(p => p.id === lobbyPlayer.nextPlayerId);
-    const previousPlayer = lobby.players.find(p => p.id === lobbyPlayer.previousPlayerId);
-
-    return { nextPlayer, previousPlayer };
-  },
-
   async getLobbyRoundForPlayer(lobby_id, player_id, round_number) {
     const round = await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).andWhere({ round_number }).first();
     return round;
+  },
+
+  async setDrawing(lobby_id, player_id, round_number, drawing) {
+    await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).andWhere({ round_number }).update({ drawing });
+
+    const drawingsForRound = await db('lobby_round').where({ lobby_id }).andWhere({ round_number }).select('drawing');
+
+    if (!drawingsForRound.find(row => !row.drawing)) {
+      await TelestrationsService.startNextRound(lobby_id);
+    }
   }
 };
 
