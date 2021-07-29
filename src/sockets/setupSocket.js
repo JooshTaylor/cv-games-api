@@ -7,7 +7,7 @@ function setupSocket(server) {
     cors: {
       origin: [
         'http://localhost:3000',
-        'https://cv-games.netlify.app'
+        'https://jooshtaylor.github.io'
       ]
     }
   });
