@@ -77,13 +77,23 @@ const TelestrationsService = {
       const index = shuffledPlayers.findIndex(p => p.id === player.id);
 
       let previousPlayer;
-
-      if (index > 0)
+      if (index > 0) {
         previousPlayer = shuffledPlayers[index - 1];
-      else
+      } else {
         previousPlayer = shuffledPlayers[shuffledPlayers.length - 1];
+      }
 
-      await db('lobby_player').where({ lobby_id }).andWhere({ player_id: player.id }).update({ previous_player_id: previousPlayer.id });
+      let nextPlayer;
+      if (index < shuffledPlayers.length - 1) {
+        nextPlayer = shuffledPlayers[index + 1];
+      } else {
+        nextPlayer = shuffledPlayers[0];
+      }
+
+      await db('lobby_player')
+        .where({ lobby_id })
+        .andWhere({ player_id: player.id })
+        .update({ previous_player_id: previousPlayer.id, next_player_id: nextPlayer.id });
 
       await TelestrationsService.addRound(lobby_id, player.id, 1, TelestrationsRoundType.SelectWord);
     }
@@ -209,15 +219,30 @@ const TelestrationsService = {
     results.player = lobby.players.find(p => p.id === player_id);
     results.word = lobbyPlayer.word;
 
-    console.log(lobby_id, lobbyPlayer, lobby);
-    const finalRoundForPlayersWord = await TelestrationsService.getLobbyRoundForPlayer(lobby_id, lobbyPlayer.previousPlayerId, lobby.totalRounds);
+    const rounds = [];
 
-    results.finalRound = finalRoundForPlayersWord;
+    let loop = true;
+    let nextPlayerId = lobbyPlayer.nextPlayerId;
+    let roundToFetch = 2;
+    while (loop) {
+      const nextPlayer = await TelestrationsService.getLobbyPlayer(lobby_id, nextPlayerId);
+      const round = await TelestrationsService.getLobbyRoundForPlayer(lobby_id, nextPlayerId, roundToFetch);
 
-    // // This is the player who had to draw the original word
-    // const { nextPlayerId } = lobbyPlayer;
+      rounds.push({
+        player: lobby.players.find(p => p.id === nextPlayerId),
+        word: round.roundType === TelestrationsRoundType.GuessWord ? round.word : null,
+        drawing: round.roundType === TelestrationsRoundType.DrawWord ? round.drawing : null,
+      });
 
-    // const rounds = await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).orderBy('round_number', 'asc');
+      nextPlayerId = nextPlayer.nextPlayerId;
+      roundToFetch++;
+
+      if (nextPlayerId === lobbyPlayer.playerId)
+        loop = false;
+    }
+
+    results.rounds = rounds;
+
     return results;
   }
 };
