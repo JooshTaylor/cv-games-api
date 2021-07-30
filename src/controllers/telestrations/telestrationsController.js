@@ -5,6 +5,15 @@ const telestrationsController = express.Router();
 
 const TelestrationsService = require('../../services/TelestrationsService');
 
+telestrationsController.get('/lobby', async (req, res) => {
+  try {
+    const lobbies = await TelestrationsService.getJoinableLobbies();
+    res.json(lobbies);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 telestrationsController.get('/lobby/:id', async (req, res) => {
   try {
     const lobby = await TelestrationsService.getLobby(req.params.id);
@@ -16,7 +25,7 @@ telestrationsController.get('/lobby/:id', async (req, res) => {
 
 telestrationsController.post('/lobby', async (req, res) => {
   try {
-    const lobby = await TelestrationsService.createLobby();
+    const lobby = await TelestrationsService.createLobby(req.body.name);
     res.json(lobby);
   } catch (err) {
     res.status(500).json(err);

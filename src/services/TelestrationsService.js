@@ -19,10 +19,11 @@ const TelestrationsService = {
     return lobby;
   },
 
-  async createLobby() {
+  async createLobby(name) {
     try {
       const row = {
         id: shortid.generate(),
+        name,
         status: 'WaitingForPlayers'
       }
   
@@ -262,6 +263,11 @@ const TelestrationsService = {
     results.rounds = rounds;
 
     return results;
+  },
+
+  async getJoinableLobbies() {
+    const lobbies = await db('lobby').where({ status: LobbyStatus.WaitingForPlayers });
+    return lobbies;
   }
 };
 
