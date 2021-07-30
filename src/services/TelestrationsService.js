@@ -133,10 +133,16 @@ const TelestrationsService = {
     await db('lobby_player').where({ lobby_id }).andWhere({ player_id }).update({ word });
     await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).andWhere({ round_type: TelestrationsRoundType.SelectWord }).update({ word });
 
-    const lobbyPlayerWords = await db('lobby_player').where({ lobby_id }).select('word');
+    const lobby = await TelestrationsService.getLobby(lobby_id);
+    const lobbyPlayers = await db('lobby_player').where({ lobby_id }).select('*');
 
-    if (!lobbyPlayerWords.find(row => !row.word)) {
+    const usersWithoutWord = lobbyPlayers.filter(p => !p.word);
+
+    if (!usersWithoutWord.length) {
       await TelestrationsService.startNextRound(lobby_id);
+    } else {
+      const waitingOn = lobby.players.filter(p => usersWithoutWord.find(u => u.playerId === p.id));
+      SocketHelper.emitToLobby(lobby_id, socketEvents.Telestrations.WAITING_ON, waitingOn);
     }
   },
 
@@ -190,20 +196,32 @@ const TelestrationsService = {
   async setDrawing(lobby_id, player_id, round_number, drawing) {
     await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).andWhere({ round_number }).update({ drawing });
 
-    const drawingsForRound = await db('lobby_round').where({ lobby_id }).andWhere({ round_number }).select('drawing');
+    const rounds = await db('lobby_round').where({ lobby_id }).andWhere({ round_number }).select('*');
 
-    if (!drawingsForRound.find(row => !row.drawing)) {
+    const playerRoundsWithoutDrawing = rounds.filter(pr => !pr.drawing);
+
+    if (!playerRoundsWithoutDrawing.length) {
       await TelestrationsService.startNextRound(lobby_id);
+    } else {
+      const lobby = await TelestrationsService.getLobby(lobby_id);
+      const waitingOn = lobby.players.filter(p => playerRoundsWithoutDrawing.find(pr => pr.playerId === p.id));
+      SocketHelper.emitToLobby(lobby_id, socketEvents.Telestrations.WAITING_ON, waitingOn);
     }
   },
 
   async setGuess(lobby_id, player_id, round_number, guess) {
     await db('lobby_round').where({ lobby_id }).andWhere({ player_id }).andWhere({ round_number }).update({ word: guess });
 
-    const guessesForRound = await db('lobby_round').where({ lobby_id }).andWhere({ round_number }).select('word');
+    const rounds = await db('lobby_round').where({ lobby_id }).andWhere({ round_number }).select('*');
 
-    if (!guessesForRound.find(row => !row.word)) {
+    const playerRoundsWithoutGuess = rounds.filter(pr => !pr.word);
+
+    if (!playerRoundsWithoutGuess.length) {
       await TelestrationsService.startNextRound(lobby_id);
+    } else {
+      const lobby = await TelestrationsService.getLobby(lobby_id);
+      const waitingOn = lobby.players.filter(p => playerRoundsWithoutGuess.find(pr => pr.playerId === p.id));
+      SocketHelper.emitToLobby(lobby_id, socketEvents.Telestrations.WAITING_ON, waitingOn);
     }
   },
 
