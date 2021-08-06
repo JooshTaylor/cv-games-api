@@ -268,6 +268,24 @@ const TelestrationsService = {
   async getJoinableLobbies() {
     const lobbies = await db('lobby').where({ status: LobbyStatus.WaitingForPlayers });
     return lobbies;
+  },
+
+  async getChain(lobby_id) {
+    const lobby = await TelestrationsService.getLobby(lobby_id);
+    const lobbyPlayers = await db('lobby_player').where({ lobby_id });
+
+    const chain = Array.from(lobby.players.map(p => undefined));
+
+    let nextEmptyIndex = 0;
+    let currentPlayer = lobbyPlayers[0];
+    while (chain.some(p => typeof(p) === 'undefined')) {
+      chain[nextEmptyIndex] = lobby.players.find(p => p.id === currentPlayer.playerId);
+
+      nextEmptyIndex++;
+      currentPlayer = lobbyPlayers.find(p => p.playerId === currentPlayer.nextPlayerId);
+    }
+
+    return chain;
   }
 };
 

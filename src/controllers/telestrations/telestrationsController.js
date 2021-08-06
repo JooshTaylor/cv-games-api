@@ -108,4 +108,13 @@ telestrationsController.get(`/lobby/:lobby_id/players/:player_id/results`, async
   }
 });
 
+telestrationsController.get(`/lobby/:lobby_id/chain`, async (req, res) => {
+  try {
+    const chain = await TelestrationsService.getChain(req.params.lobby_id);
+    res.json(chain);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 module.exports = telestrationsController;
